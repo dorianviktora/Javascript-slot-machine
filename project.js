@@ -1,6 +1,9 @@
 
 const prompt = require("prompt-sync")();
 
+const machineSize = 3 // 3x3 slot machine, do not change for now
+const cards = ["9", "10", "J", "Q", "K", "A"]
+
 const deposit = () => {
     depositNumber = 0;
 
@@ -14,6 +17,44 @@ const deposit = () => {
             return depositNumber;
         }
     }
-};
+}
 
-deposit();
+const randomNumber = () => {
+    return Math.floor(Math.random() * (5 + 1));
+}
+
+const printBorderLine = () => {
+    for (let j = 0; j < machineSize; j++) {
+        process.stdout.write("+---");
+    }
+    console.log("+");
+}
+
+const printMachine = (spinnedNumbers) => {
+    for (let i = 0; i < machineSize; i++) {
+        printBorderLine();
+        
+        for (let j = 0; j < machineSize; j++) {
+            process.stdout.write("| " + spinnedNumbers[i * machineSize + j] + " ");
+        }
+        console.log("|");
+    }
+    printBorderLine();
+}
+
+const spinMachine = () => {
+    const spinnedNumbers = []
+    for (let i = 0; i < Math.pow(machineSize, 2); i++) {
+        spinnedNumbers.push(randomNumber());  
+    }
+
+    printMachine(spinnedNumbers);
+}
+
+spinMachine()
+
+
+const depositAmount = deposit();
+let number = randomNumber();
+
+console.log(number)
