@@ -62,8 +62,7 @@ const changeLineColor = (index, colors, color) => {
     }
 }
 
-const calculateWinnings = (spinnedNumbers, colors) => {
-
+const checkLineWin = (spinnedNumbers, colors) => {
     let winnings = 0;
     for (let i = 0; i < machineSize; i++) {
 
@@ -87,13 +86,43 @@ const calculateWinnings = (spinnedNumbers, colors) => {
                 changeLineColor(i * machineSize, colors, blue);
                 winnings += 200;
             } else {
-                // big symbol -> 'A'
+                // big symbol
                 changeLineColor(i * machineSize, colors, red);
                 winnings += 300;
             }
         }
     }
     return winnings;
+}
+
+const checkDiagonalWin = (spinnedNumbers) => {
+
+    let diagonalWin = true;
+
+    for (let i = 0; i < machineSize - 1; i++) {
+
+        const index = i * machineSize + i;
+        const j = i + 1;
+        const next_index = j * machineSize + j;
+
+        if (spinnedNumbers[index] != spinnedNumbers[next_index]) {
+            diagonalWin = false;
+            break;
+        }
+    }
+
+    if (diagonalWin) {
+        console.log("DIAGONAL WIN");
+    }
+}
+
+const calculateWinnings = (spinnedNumbers, colors) => {
+
+    let totalWin = 0;
+    totalWin += checkLineWin(spinnedNumbers, colors);
+
+    
+    return totalWin;
 }
 
 const printWinningQuote = (winAmount) => {
@@ -126,6 +155,8 @@ const spinMachine = () => {
     let winAmount = calculateWinnings(spinnedNumbers, colors);
     printMachine(spinnedNumbers, colors);
     printWinningQuote(winAmount);
+
+    checkDiagonalWin(spinnedNumbers);
 }
 
 let depositAmount = 100;
