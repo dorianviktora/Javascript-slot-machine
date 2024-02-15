@@ -1,12 +1,16 @@
 
 const prompt = require("prompt-sync")();
 
-const machineSize = 3; // 3 -> 3x3 machine, 5 -> 5x5 machine. Min possible size 2 but for fun use at least 3x3.
+/* Feel free to change slot machine size and
+ * cards. If you change machine cards, remember you
+ * need to adjust symbols too.  */
+
+const machineSize = 3; // 3 -> 3x3 machine, 5 -> 5x5 machine. Minimum size 2.
 
 const cards = ["A", "K", "Q", "7"];
 const smallSymbols = ["K", "Q"];
 const mediumSymbols = ["A"];
-//const bigSymbols = ["7"];
+const bigSymbols = ["7"];
 
 const white = "\x1b[0m";
 const red = "\x1b[31m";
@@ -55,67 +59,75 @@ const printMachine = (spinnedNumbers, colors) => {
     printBorderLine();
 }
 
-const changeLineColor = (line, color) => {
-    for (let i = 0; i < line.length; i++) {
-        line[i] = color;
-    }
-}
-
 const sameSymbolsInLine = (line) => {
     return line.every(element => element == line[0]);
 }
 
-const checkLineWin = (spinnedNumbers, colors) => {
-    let winnings = 0;
+const checkPaylineWin = (line) => {
+    let winAmount = 0;
+    let color = white;
 
+    if (sameSymbolsInLine(line)) {
+
+        if (smallSymbols.includes(line[0])) {
+            winAmount += 100;
+            color = green;
+        }
+        else if (mediumSymbols.includes(line[0])) {
+            winAmount += 200;
+            color = blue;
+        }
+        else if (bigSymbols.includes(line[0])) {
+            winAmount += 300;
+            color = red;
+        }
+    }
+    return {
+        winAmount: winAmount,
+        color: color
+    };
+}
+
+const changeRowColor = (row, color) => {
     for (let i = 0; i < machineSize; i++) {
-        if (sameSymbolsInLine(spinnedNumbers[i])) {
-            
-            if (smallSymbols.includes(spinnedNumbers[i][0])) {
-                changeLineColor(colors[i], green);
-                winnings += 100;
-            }
-            else if (mediumSymbols.includes(spinnedNumbers[i][0])) {
-                changeLineColor(colors[i], blue);
-                winnings += 200;
-            }
-            else {
-                changeLineColor(colors[i], red);
-                winnings += 300;
-            }
-        }
-    }
-
-    return winnings;
-}
-
-const checkDiagonalWin = (spinnedNumbers) => {
-
-    let diagonalWin = true;
-
-    for (let i = 0; i < machineSize - 1; i++) {
-
-        const index = i * machineSize + i;
-        const j = i + 1;
-        const next_index = j * machineSize + j;
-
-        if (spinnedNumbers[index] != spinnedNumbers[next_index]) {
-            diagonalWin = false;
-            break;
-        }
-    }
-
-    if (diagonalWin) {
-        console.log("DIAGONAL WIN");
+        row[i] = color;
     }
 }
 
-const calculateWinnings = (spinnedNumbers, colors) => {
+const createPaylines = (spinnedNumbers, colors) => {
 
     let totalWin = 0;
-    totalWin += checkLineWin(spinnedNumbers, colors);
 
-    
+    // row paylines
+    for (let i = 0; i < machineSize; i++) {
+        const result = checkPaylineWin(spinnedNumbers[i]);
+        totalWin += result.winAmount;
+        changeRowColor(colors[i], result.color);
+    }
+
+    // diagonal paylines
+    const mainDiagonal = [];
+    const antiDiagonal = [];
+
+    for (let i = 0; i < machineSize; i++) {
+        mainDiagonal.push(spinnedNumbers[i][i]);
+        antiDiagonal.push(spinnedNumbers[machineSize - i - 1][i]);
+    }
+
+    const mainDiagonalRes = checkPaylineWin(mainDiagonal);
+    const antiDiagonalRes = checkPaylineWin(antiDiagonal);
+
+    for (let i = 0; i < machineSize; i++) {
+        if (mainDiagonalRes.winAmount != 0) {
+            colors[i][i] = mainDiagonalRes.color;
+        }
+        if (antiDiagonalRes.winAmount != 0) {
+            colors[machineSize - i - 1][i] = antiDiagonalRes.color;
+        }
+    }
+
+    totalWin += mainDiagonalRes.winAmount + antiDiagonalRes.winAmount;
+
     return totalWin;
 }
 
@@ -147,7 +159,9 @@ const spinMachine = () => {
         Array.from({ length: machineSize }, () => white)
     );
 
-    let winAmount = calculateWinnings(spinnedNumbers, colors);
+    printMachine(spinnedNumbers, colors);
+
+    let winAmount = createPaylines(spinnedNumbers, colors);
     printMachine(spinnedNumbers, colors);
     printWinningQuote(winAmount);
 
