@@ -1,4 +1,5 @@
 
+const colors = require('./colors');
 const prompt = require("prompt-sync")();
 const readlineSync = require('readline-sync');
 
@@ -12,15 +13,6 @@ const cards = ["A", "K", "Q", "7"];
 const smallSymbols = ["K", "Q"];
 const mediumSymbols = ["A"];
 const bigSymbols = ["7"];
-
-const white = "\x1b[0m";
-const red = "\x1b[31m";
-const green = "\x1b[32m";
-const blue = "\x1b[34m";
-const yellow = "\x1b[33m";
-const pink = "\x1b[35m";
-const orange = "\x1b[38;5;208m";
-
 
 const deposit = () => {
     depositNumber = 0;
@@ -48,12 +40,12 @@ const printBorderLine = () => {
     console.log("+");
 }
 
-const printMachine = (spinnedNumbers, colors) => {
+const printMachine = (spinnedNumbers, colorArray) => {
     for (let i = 0; i < machineSize; i++) {
         printBorderLine();
         
         for (let j = 0; j < machineSize; j++) {
-            process.stdout.write("| " + colors[i][j] + spinnedNumbers[i][j] + white + " ");
+            process.stdout.write("| " + colorArray[i][j] + spinnedNumbers[i][j] + colors.white + " ");
         }
         console.log("|");
     }
@@ -66,21 +58,21 @@ const sameSymbolsInLine = (line) => {
 
 const checkPaylineWin = (line) => {
     let winAmount = 0;
-    let color = white;
+    let color = colors.white;
 
     if (sameSymbolsInLine(line)) {
 
         if (smallSymbols.includes(line[0])) {
             winAmount += 100;
-            color = green;
+            color = colors.green;
         }
         else if (mediumSymbols.includes(line[0])) {
             winAmount += 200;
-            color = blue;
+            color = colors.blue;
         }
         else if (bigSymbols.includes(line[0])) {
             winAmount += 300;
-            color = red;
+            color = colors.red;
         }
     }
     return {
@@ -95,7 +87,7 @@ const changeRowColor = (row, color) => {
     }
 }
 
-const createPaylines = (spinnedNumbers, colors) => {
+const createPaylines = (spinnedNumbers, colorArray) => {
 
     let totalWin = 0;
 
@@ -103,7 +95,7 @@ const createPaylines = (spinnedNumbers, colors) => {
     for (let i = 0; i < machineSize; i++) {
         const result = checkPaylineWin(spinnedNumbers[i]);
         totalWin += result.winAmount;
-        changeRowColor(colors[i], result.color);
+        changeRowColor(colorArray[i], result.color);
     }
 
     // diagonal paylines
@@ -120,10 +112,10 @@ const createPaylines = (spinnedNumbers, colors) => {
 
     for (let i = 0; i < machineSize; i++) {
         if (mainDiagonalRes.winAmount != 0) {
-            colors[i][i] = mainDiagonalRes.color;
+            colorArray[i][i] = mainDiagonalRes.color;
         }
         if (antiDiagonalRes.winAmount != 0) {
-            colors[machineSize - i - 1][i] = antiDiagonalRes.color;
+            colorArray[machineSize - i - 1][i] = antiDiagonalRes.color;
         }
     }
 
@@ -137,19 +129,19 @@ const printWinningQuote = (winAmount) => {
         return;
     }
     if (winAmount <= 100) {
-        process.stdout.write(green + "small win");
+        process.stdout.write(colors.green + "small win");
     } else if (winAmount <= 200) {
-        process.stdout.write(blue + "good win");
+        process.stdout.write(colors.blue + "good win");
     } else if (winAmount <= 400) {
-        process.stdout.write(red + "Big win!");
+        process.stdout.write(colors.red + "Big win!");
     } else if (winAmount <= 600) {
-        process.stdout.write(orange + "HUGE win!");
+        process.stdout.write(colors.orange + "HUGE win!");
     } else if (winAmount <= 900) {
-        process.stdout.write(pink + "ASTRONOMICAL WIN!!!");
+        process.stdout.write(colors.pink + "ASTRONOMICAL WIN!!!");
     } else {
-        process.stdout.write(yellow + "$$$ !!!JACKPOT!!! $$$");
+        process.stdout.write(colors.yellow + "$$$ !!!JACKPOT!!! $$$");
     }
-    console.log(" " + winAmount + white);
+    console.log(" " + winAmount + colors.white);
 }
 
 const spinMachine = () => {
@@ -157,12 +149,12 @@ const spinMachine = () => {
         Array.from({ length: machineSize }, () => cards[randomNumber()])
     );
 
-    let colors = Array.from({ length: machineSize }, () =>
-        Array.from({ length: machineSize }, () => white)
+    let colorArray = Array.from({ length: machineSize }, () =>
+        Array.from({ length: machineSize }, () => colors.white)
     );
 
-    let winAmount = createPaylines(spinnedNumbers, colors);
-    printMachine(spinnedNumbers, colors);
+    let winAmount = createPaylines(spinnedNumbers, colorArray);
+    printMachine(spinnedNumbers, colorArray);
     printWinningQuote(winAmount);
 
     cashAmount += winAmount - betAmount
