@@ -1,5 +1,6 @@
 
 const prompt = require("prompt-sync")();
+const readlineSync = require('readline-sync');
 
 /* Feel free to change slot machine size and
  * cards. If you change machine cards, remember you
@@ -136,18 +137,19 @@ const printWinningQuote = (winAmount) => {
         return;
     }
     if (winAmount <= 100) {
-        console.log(green + "small win" + white);
+        process.stdout.write(green + "small win");
     } else if (winAmount <= 200) {
-        console.log(blue + "good win" + white);
+        process.stdout.write(blue + "good win");
     } else if (winAmount <= 400) {
-        console.log(red + "Big win!" + white);
+        process.stdout.write(red + "Big win!");
     } else if (winAmount <= 600) {
-        console.log(orange + "HUGE win!" + white);
+        process.stdout.write(orange + "HUGE win!");
     } else if (winAmount <= 900) {
-        console.log(pink + "ENORMOUS WIN!!!" + white);
+        process.stdout.write(pink + "ASTRONOMICAL WIN!!!");
     } else {
-        console.log(yellow + "$$$ !JACKPOT! $$$" + white);
+        process.stdout.write(yellow + "$$$ !!!JACKPOT!!! $$$");
     }
+    console.log(" " + winAmount + white);
 }
 
 const spinMachine = () => {
@@ -159,16 +161,23 @@ const spinMachine = () => {
         Array.from({ length: machineSize }, () => white)
     );
 
-    printMachine(spinnedNumbers, colors);
-
     let winAmount = createPaylines(spinnedNumbers, colors);
     printMachine(spinnedNumbers, colors);
     printWinningQuote(winAmount);
 
-    //checkDiagonalWin(spinnedNumbers);
+    cashAmount += winAmount - betAmount
+    console.log("Remaining cash: " + cashAmount);
 }
 
-let depositAmount = 100;
-//const depositAmount = deposit();
+let cashAmount = deposit();
+let betAmount = 50;
 
-spinMachine();
+while (true) {
+    const space = readlineSync.keyIn("Press 'space' to spin the machine!");
+    if (space == ' ') {
+        spinMachine();
+    }
+    if (space != ' ') {
+        return;
+    }
+}
