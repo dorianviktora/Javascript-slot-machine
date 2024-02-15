@@ -3,12 +3,12 @@ const prompt = require("prompt-sync")();
 
 const machineSize = 3; // 3 -> 3x3 machine, 5 -> 5x5 machine. Min possible size 2 but for fun use at least 3x3.
 
-const cards = ["9", "T", "J", "Q", "K", "A"];
-const smallWin = ["9", "T", "J"];
-const mediumWin = ["Q", "K"];
-//const bigWin = ["A"];
+const cards = ["A", "K", "Q", "7"];
+const smallSymbols = ["K", "Q"];
+const mediumSymbols = ["A"];
+//const bigSymbols = ["7"];
 
-const reset = "\x1b[0m";
+const white = "\x1b[0m";
 const red = "\x1b[31m";
 const green = "\x1b[32m";
 const blue = "\x1b[34m";
@@ -33,7 +33,7 @@ const deposit = () => {
 }
 
 const randomNumber = () => {
-    return Math.floor(Math.random() * (5 + 1));
+    return Math.floor(Math.random() * (cards.length));
 }
 
 const printBorderLine = () => {
@@ -48,50 +48,44 @@ const printMachine = (spinnedNumbers, colors) => {
         printBorderLine();
         
         for (let j = 0; j < machineSize; j++) {
-            let index = i * machineSize + j;
-            process.stdout.write("| " + colors[index] + spinnedNumbers[index] + reset + " ");
+            process.stdout.write("| " + colors[i][j] + spinnedNumbers[i][j] + white + " ");
         }
         console.log("|");
     }
     printBorderLine();
 }
 
-const changeLineColor = (index, colors, color) => {
-    for (let i = 0; i < machineSize; i++) {
-        colors[index + i] = color;
+const changeLineColor = (line, color) => {
+    for (let i = 0; i < line.length; i++) {
+        line[i] = color;
     }
+}
+
+const sameSymbolsInLine = (line) => {
+    return line.every(element => element == line[0]);
 }
 
 const checkLineWin = (spinnedNumbers, colors) => {
     let winnings = 0;
+
     for (let i = 0; i < machineSize; i++) {
-
-        let lineWin = true;
-        for (let j = 0; j < machineSize - 1; j++) {
-
-            const index = i * machineSize + j;
-            if (spinnedNumbers[index] != spinnedNumbers[index + 1]) {
-                lineWin = false;
-                break;
-            }
-        }
-
-        if (lineWin) {
-            if (smallWin.includes(spinnedNumbers[i * machineSize])) {
-                // small symbol
-                changeLineColor(i * machineSize, colors, green);
+        if (sameSymbolsInLine(spinnedNumbers[i])) {
+            
+            if (smallSymbols.includes(spinnedNumbers[i][0])) {
+                changeLineColor(colors[i], green);
                 winnings += 100;
-            } else if (mediumWin.includes(spinnedNumbers[i * machineSize])) {
-                // medium symbol
-                changeLineColor(i * machineSize, colors, blue);
+            }
+            else if (mediumSymbols.includes(spinnedNumbers[i][0])) {
+                changeLineColor(colors[i], blue);
                 winnings += 200;
-            } else {
-                // big symbol
-                changeLineColor(i * machineSize, colors, red);
+            }
+            else {
+                changeLineColor(colors[i], red);
                 winnings += 300;
             }
         }
     }
+
     return winnings;
 }
 
@@ -130,33 +124,34 @@ const printWinningQuote = (winAmount) => {
         return;
     }
     if (winAmount <= 100) {
-        console.log(green + "small win" + reset);
+        console.log(green + "small win" + white);
     } else if (winAmount <= 200) {
-        console.log(blue + "good win" + reset);
+        console.log(blue + "good win" + white);
     } else if (winAmount <= 400) {
-        console.log(red + "Big win!" + reset);
+        console.log(red + "Big win!" + white);
     } else if (winAmount <= 600) {
-        console.log(orange + "HUGE win!" + reset);
+        console.log(orange + "HUGE win!" + white);
     } else if (winAmount <= 900) {
-        console.log(pink + "ENORMOUS WIN!!!" + reset);
+        console.log(pink + "ENORMOUS WIN!!!" + white);
     } else {
-        console.log(yellow + "$$$ !JACKPOT! $$$" + reset);
+        console.log(yellow + "$$$ !JACKPOT! $$$" + white);
     }
 }
 
 const spinMachine = () => {
-    const spinnedNumbers = []
-    for (let i = 0; i < Math.pow(machineSize, 2); i++) {
-        spinnedNumbers.push(cards[randomNumber()]);  
-    }
+    const spinnedNumbers = Array.from({ length: machineSize }, () =>
+        Array.from({ length: machineSize }, () => cards[randomNumber()])
+    );
 
-    let colors = Array.from({length: Math.pow(machineSize, 2)}, () => reset);
+    let colors = Array.from({ length: machineSize }, () =>
+        Array.from({ length: machineSize }, () => white)
+    );
 
     let winAmount = calculateWinnings(spinnedNumbers, colors);
     printMachine(spinnedNumbers, colors);
     printWinningQuote(winAmount);
 
-    checkDiagonalWin(spinnedNumbers);
+    //checkDiagonalWin(spinnedNumbers);
 }
 
 let depositAmount = 100;
