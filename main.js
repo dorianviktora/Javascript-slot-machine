@@ -31,7 +31,7 @@ const deposit = () => {
 }
 
 const randomNumber = () => {
-    return Math.floor(Math.random() * (cards.length));
+    return Math.floor(Math.random() * (cards.length - 2));
 }
 
 const printBorderLine = () => {
